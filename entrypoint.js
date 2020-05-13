@@ -54,10 +54,10 @@ async function runAudit() {
 
 async function runWebPagetest(wpt) {
   return new Promise((resolve, reject) => {
-    const pullRequestName = tools.context.ref?.replace('/refs/head');
+    const pullRequestName = tools.context.ref?.replace('refs/head/', '');
 
     const testUrl = (process.env.NOW_SITE && process.env.NOW_USERNAME && pullRequestName) 
-      ? `https://${process.env.NOW_SITE}-git-${pullRequestName}.${process.env.NOW_USERNAME}.now.sh`
+      ? `https://${process.env.NOW_SITE}-git-${pullRequestName.replace(/\//, '-')}.${process.env.NOW_USERNAME}.now.sh`
       : process.env.TEST_URL;
 
     tools.log.info(`test url: ${testUrl}`)
