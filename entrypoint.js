@@ -60,6 +60,8 @@ async function runWebPagetest(wpt) {
       ? `https://${process.env.NOW_SITE}-git-${pullRequestName}.${process.env.NOW_USERNAME}.now.sh`
       : process.env.TEST_URL;
 
+    tools.log.info(`test url: ${testUrl}`)
+
     wpt.runTest(
       testUrl,
       {
