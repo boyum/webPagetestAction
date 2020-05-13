@@ -51,34 +51,14 @@ async function runAudit() {
     tools.log.error(`Something went wrong ${error}!`);
   }
 }
-/**
- * Formats urls and replaces any `[[ENVIRONMENT_VARIABLE]]` 
- * with the environment variable's value
- * @param {string} url 
- */
-function formatTestUrl(url) {
-  const regexp = /(\[\[.+?\]\])/g;
-  const environmentVariables = url
-    .match(regexp)
-    ?.map(
-      environmentVariable => 
-        environmentVariable
-          .replace('[[', '')
-          .replace(']]', '')
-    ) ?? [];
-
-  for (const environmentVariable of environmentVariables) {
-    const regexp = new RegExp(`[[${environmentVariable}]]`, 'g');
-
-    url = url.replace(regexp, process.env[environmentVariable]);
-  }
-  
-  return url;
-}
 
 async function runWebPagetest(wpt) {
   return new Promise((resolve, reject) => {
-    const testUrl = formatTestUrl(process.env.TEST_URL);
+    const pullRequestName = tools.context.ref?.replace('/refs/head');
+
+    const testUrl = (process.env.NOW_SITE && process.env.NOW_USERNAME && pullRequestName) 
+      ? `https://${process.env.NOW_SITE}-git-${pullRequestName}.${process.env.NOW_USERNAME}.now.sh`
+      : process.env.TEST_URL;
 
     wpt.runTest(
       testUrl,
