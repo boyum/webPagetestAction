@@ -15,8 +15,12 @@ runAudit();
 async function runAudit() {
   try {
     if (event === "push") {
+      if(!process.env.WEBPAGETEST_API_KEY) {
+        throw new Exception("No webpage test api key");
+      }
+      
       tools.log("### Action triggered! ###");
-
+      
       // 1. An authenticated instance of `@octokit/rest`, a GitHub API SDK
       const octokit = tools.github;
 
