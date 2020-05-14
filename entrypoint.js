@@ -15,8 +15,12 @@ runAudit();
 async function runAudit() {
   try {
     if (event === "push") {
+      if(!process.env.WEBPAGETEST_API_KEY) {
+        throw new Exception("No webpage test api key");
+      }
+      
       tools.log("### Action triggered! ###");
-
+      
       // 1. An authenticated instance of `@octokit/rest`, a GitHub API SDK
       const octokit = tools.github;
 
@@ -28,9 +32,11 @@ async function runAudit() {
 
       // 2. run tests and save results
       const webpagetestResults = await runWebPagetest(wpt);
-
+      tools.log.info('Results', webpagetestResults);
+        
       // 3. convert results to markdown
       const finalResultsAsMarkdown = convertToMarkdown(webpagetestResults);
+      tools.log.info('Results as markdown', finalResultsAsMarkdown);
 
       // 4. print results to as commit comment
       const { owner, repo } = {
@@ -41,21 +47,29 @@ async function runAudit() {
       await octokit.repos.createCommitComment({
         owner,
         repo,
-        sha,
+        commit_sha: sha,
         body: finalResultsAsMarkdown
       });
 
       tools.exit.success("Succesfully run!");
     }
   } catch (error) {
-    tools.log.error(`Something went wrong ${error}!`);
+    tools.log.error(`Something went wrong ${JSON.stringify(error)}!`);
   }
 }
 
 async function runWebPagetest(wpt) {
   return new Promise((resolve, reject) => {
+    const pullRequestName = tools.context.ref?.replace('refs/heads/', '');
+
+    const testUrl = (process.env.NOW_SITE && process.env.NOW_USERNAME && pullRequestName) 
+      ? `https://${process.env.NOW_SITE}-git-${pullRequestName.replace(/\//g, '-')}.${process.env.NOW_USERNAME}.now.sh`
+      : process.env.TEST_URL;
+
+    tools.log.info(`test url: ${testUrl}`)
+
     wpt.runTest(
-      process.env.TEST_URL,
+      testUrl,
       {
         location: argv.location || "Dulles_MotoG4", // <location> string to test from https://www.webpagetest.org/getLocations.php?f=html
         connectivity: argv.connectivity || "3GSlow", // <profile> string: connectivity profile -- requires location to be specified -- (Cable|DSL|3GSlow|3G|3GFast|4G|LTE|Edge|2G|Dial|FIOS|Native|custom) [Cable]
