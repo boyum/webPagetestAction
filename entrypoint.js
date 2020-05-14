@@ -32,9 +32,11 @@ async function runAudit() {
 
       // 2. run tests and save results
       const webpagetestResults = await runWebPagetest(wpt);
-
+      tools.log.info('Results', webpagetestResults);
+        
       // 3. convert results to markdown
       const finalResultsAsMarkdown = convertToMarkdown(webpagetestResults);
+      tools.log.info('Results as markdown', finalResultsAsMarkdown);
 
       // 4. print results to as commit comment
       const { owner, repo } = {
@@ -45,14 +47,14 @@ async function runAudit() {
       await octokit.repos.createCommitComment({
         owner,
         repo,
-        sha,
+        commit_sha: sha,
         body: finalResultsAsMarkdown
       });
 
       tools.exit.success("Succesfully run!");
     }
   } catch (error) {
-    tools.log.error(`Something went wrong ${error}!`);
+    tools.log.error(`Something went wrong ${JSON.stringify(error)}!`);
   }
 }
 
